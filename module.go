@@ -18,7 +18,7 @@ const (
 //go:embed src/main/resources
 var theMainRes embed.FS
 
-// Module 导出模块【】
+// Module 导出模块【github.com/bitwormhole/starter-gin-security】
 func Module() application.Module {
 
 	mb := application.ModuleBuilder{}
