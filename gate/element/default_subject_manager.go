@@ -52,9 +52,8 @@ func (inst *DefaultSubjectManager) toSubject(o interface{}) (security.Subject, b
 }
 
 func (inst *DefaultSubjectManager) createSubject() (security.Subject, error) {
-
 	subject := &defaultSubject{}
-
+	subject._context = inst.Context
 	return subject, nil
 }
 
