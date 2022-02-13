@@ -4,7 +4,10 @@ import (
 	"embed"
 
 	"github.com/bitwormhole/starter"
+	startergin "github.com/bitwormhole/starter-gin"
 	"github.com/bitwormhole/starter-gin-security/gen"
+	"github.com/bitwormhole/starter-gin-security/gen/demo"
+	startersecurity "github.com/bitwormhole/starter-security"
 	"github.com/bitwormhole/starter/application"
 	"github.com/bitwormhole/starter/collection"
 )
@@ -27,6 +30,31 @@ func Module() application.Module {
 	mb.OnMount(gen.ExportConfigForGinSecurity)
 
 	mb.Dependency(starter.Module())
+	mb.Dependency(startergin.Module())
+	mb.Dependency(startersecurity.Module())
+
+	return mb.Create()
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// ModuleForDemo 导出模块【github.com/bitwormhole/starter-gin-security#demo】
+func ModuleForDemo() application.Module {
+
+	parent := Module()
+
+	mb := application.ModuleBuilder{}
+	mb.Name(parent.GetName() + "#demo")
+	mb.Version(parent.GetVersion())
+	mb.Revision(parent.GetRevision())
+	mb.Resources(parent.GetResources())
+
+	mb.OnMount(demo.ExportConfigForSGSDemo)
+
+	mb.Dependency(parent)
+	mb.Dependency(startergin.ModuleWithDevtools())
+	// mb.Dependency(starterrestful.Module())
+	// mb.Dependency(startersecurity.Module())
 
 	return mb.Create()
 }

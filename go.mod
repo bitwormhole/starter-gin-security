@@ -3,9 +3,10 @@ module github.com/bitwormhole/starter-gin-security
 go 1.16
 
 require (
-	github.com/bitwormhole/starter v0.0.81
-	github.com/bitwormhole/starter-gin v0.0.24
-	github.com/bitwormhole/starter-security v0.0.6
+	github.com/bitwormhole/starter v0.1.5
+	github.com/bitwormhole/starter-gin v0.1.3
+	github.com/bitwormhole/starter-restful v0.1.4 // indirect
+	github.com/bitwormhole/starter-security v0.1.2
 	github.com/gin-gonic/gin v1.7.7
-	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
+	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
 )

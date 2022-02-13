@@ -7,8 +7,6 @@ import (
 
 func main() {
 	i := startergin.InitGin()
-	i.Use(starterginsecurity.Module())
-	i.Use(startergin.Module())
-	i.Use(startergin.ModuleWithDevtools())
+	i.Use(starterginsecurity.ModuleForDemo())
 	i.Run()
 }
