@@ -1,11 +1,12 @@
 package gate
 
 import (
-	"context"
+	"errors"
 	"net/http"
 
 	"github.com/bitwormhole/starter-gin/glass"
 	"github.com/bitwormhole/starter-security/keeper"
+	"github.com/bitwormhole/starter-security/keeper/users"
 	"github.com/bitwormhole/starter/markup"
 	"github.com/gin-gonic/gin"
 )
@@ -14,8 +15,9 @@ import (
 type SecurityInterceptorRegistry struct {
 	markup.Component `class:"rest-interceptor-registry"`
 
-	Subjects    keeper.SubjectManager `inject:"#keeper-subject-manager"`
-	Permissions PermissionManager     `inject:"#security-gate-permission-manager"`
+	Subjects keeper.SubjectManager `inject:"#keeper-subject-manager"`
+
+	Permissions keeper.PermissionManager `inject:"#keeper-permission-manager"`
 }
 
 func (inst *SecurityInterceptorRegistry) _Impl() glass.InterceptorRegistry {
@@ -56,10 +58,10 @@ func (inst *securityInterceptor) Intercept(h gin.HandlerFunc) gin.HandlerFunc {
 
 // securityInterceptorInstance 是提供安全特性(授权)的 handler 拦截器的实例
 type securityInterceptorInstance struct {
-	parent     *SecurityInterceptorRegistry
-	target     gin.HandlerFunc
-	expression string
-	permission Permission
+	parent *SecurityInterceptorRegistry
+	target gin.HandlerFunc
+	// expression string
+	permission keeper.PermissionTemplate
 }
 
 func (inst *securityInterceptorInstance) handle(c *gin.Context) {
@@ -72,43 +74,119 @@ func (inst *securityInterceptorInstance) handle(c *gin.Context) {
 }
 
 func (inst *securityInterceptorInstance) check(c *gin.Context) error {
+	h, err := keeper.GetHolder(c)
+	if err != nil {
+		return err
+	}
+	ac := h.GetAccessContext()
+	x := ac.SecurityAccess
+	err = inst.authorize(x)
+	if err != nil {
+		return err
+	}
+	return inst.verify(x)
+}
 
-	pattern := c.FullPath()
-	method := c.Request.Method
-	perm := inst.permission
+func (inst *securityInterceptorInstance) checkPerm(x keeper.PermissionTemplate, method string, pattern string) error {
 
-	if perm == nil {
-		p2, err := inst.parent.Permissions.GetPermission(method, pattern, true)
+	// todo ...
+	return nil
+}
+
+// authorize 授权
+func (inst *securityInterceptorInstance) authorize(x keeper.SecurityAccess) error {
+	_, err := inst.loadPermission(x)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (inst *securityInterceptorInstance) loadPermission(x keeper.SecurityAccess) (keeper.Permission, error) {
+
+	pattern := x.PathPattern()
+	method := x.Method()
+	pt := inst.permission
+	ctx := x.GetContext()
+
+	if pt == nil {
+		// load perm
+		p2, err := inst.parent.Permissions.FindTemplate(ctx, x)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		perm = p2
+		pt = p2
 		inst.permission = p2
-		inst.expression = p2.GetExpression()
+		// inst.expression = p2.GetExpression()
 	} else {
-		err := perm.Check(method, pattern)
+		err := inst.checkPerm(pt, method, pattern)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	if perm.AcceptAnonymous() {
+	perm, err := pt.LoadPermission(x.Params())
+	if err != nil {
+		return nil, err
+	}
+
+	x.SetPermission(perm)
+	return perm, nil
+}
+
+// verify 验证授权
+func (inst *securityInterceptorInstance) verify(x keeper.SecurityAccess) error {
+
+	perm := x.GetPermission()
+	if perm == nil {
+		ak := inst.getAccessKey(x)
+		return errors.New("no permission to " + ak)
+	}
+
+	if perm.AcceptRole(users.RoleAnonymous) || perm.AcceptRole(users.RoleAnyone) {
 		return nil
 	}
 
-	subject, err := inst.parent.Subjects.GetSubject(c)
+	roles := x.GetRoles()
+	if perm.AcceptRoles(roles) {
+		return nil
+	}
+
+	// 获取身份
+	subject := x.GetSubject()
+	session, err := subject.GetSession(true)
 	if err != nil {
 		return err
 	}
 
-	return inst.hasPermission(c, subject, perm)
+	roles = session.GetRoles()
+	ident := session.GetIdentity()
+
+	if perm.AcceptRoles(roles) {
+		return nil
+	}
+
+	// check owner
+	if perm.AcceptRole(users.RoleOwner) {
+		if perm.IsOwner(ident) {
+			return nil
+		}
+	}
+
+	// check firend
+	if perm.AcceptRole(users.RoleFriend) {
+		if perm.IsFriend(ident) {
+			return nil
+		}
+	}
+
+	return errors.New("forbidden")
 }
 
-func (inst *securityInterceptorInstance) hasPermission(c context.Context, sub keeper.Subject, perm Permission) error {
-
-	// roles := perm.AcceptRoles()
-
-	return nil
+func (inst *securityInterceptorInstance) getAccessKey(x keeper.SecurityAccess) string {
+	pattern := x.PathPattern()
+	method := x.Method()
+	return method + ":" + pattern
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,6 @@
 package gate
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/bitwormhole/starter-gin/contexts"
@@ -56,108 +55,110 @@ func (inst *Filter) doFilter(c *gin.Context) error {
 
 	checker := securityChecker{}
 	checker.parent = inst
-	checker.ctxSecurity = inst.securityContext
+	checker.gc = c
 
-	// bind context
-	err := checker.initContext(c)
+	err := checker.initContext()
 	if err != nil {
 		return err
 	}
 
-	// init access
 	err = checker.initAccess()
 	if err != nil {
 		return err
 	}
 
-	// init adapter
 	err = checker.initAdapter()
 	if err != nil {
 		return err
 	}
 
-	// do auth
-	// bypass
-	// 	return checker.auth()
+	err = checker.initSubject()
+	if err != nil {
+		return err
+	}
+
+	err = checker.initSession()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 type securityChecker struct {
-	parent      *Filter
-	gc          *gin.Context
-	holder      *keeper.Holder
-	ctxSession  *keeper.SessionContext
-	ctxSecurity keeper.SecurityContext
+	parent *Filter
+	gc     *gin.Context
+	holder *keeper.Holder
+	ac     *keeper.AccessContext
 }
 
-func (inst *securityChecker) initContext(c *gin.Context) error {
+func (inst *securityChecker) initContext() error {
 
-	err := contexts.SetupGinContext(c)
+	ctx := inst.gc
+	err := contexts.SetupGinContext(ctx)
 	if err != nil {
 		return err
 	}
 
-	h, err := keeper.GetHolder(c)
+	h, err := keeper.GetHolder(ctx)
 	if err != nil {
 		return err
 	}
 
-	sc := h.GetSessionContext()
+	ac := h.GetAccessContext()
+	ac.SecurityContext = inst.parent.securityContext
+	ac.Context = ctx
 
-	inst.gc = c
-	inst.ctxSession = sc
 	inst.holder = h
+	inst.ac = ac
 	return nil
 }
 
 func (inst *securityChecker) initAccess() error {
 
-	ga := &GinAccess{}
-	ga.SetTokenFieldName = inst.parent.SetTokenHeaderName
-	ga.TokenFieldName = inst.parent.TokenHeaderName
-
-	access, err := ga.Init(inst.gc)
+	// access
+	access := &GinAccess{}
+	_, err := access.Init(inst.gc)
 	if err != nil {
 		return err
 	}
-	inst.ctxSession.Access = access
+
+	// security-access
+	sa := &keeper.DefaultSecurityAccess{}
+	sa.Init(inst.ac)
+	sa.Access = access
+
+	// done
+	inst.ac.SecurityAccess = sa
+	inst.ac.Access = access
 	return nil
 }
 
 func (inst *securityChecker) initAdapter() error {
-	af := inst.ctxSecurity.GetSessionProvider().GetAdapterFactory()
-	adapter, err := af.Create(inst.gc)
+	ctx := inst.gc
+	sp := inst.parent.securityContext.GetSessionProvider()
+	adapter, err := sp.GetAdapterFactory().Create(ctx)
 	if err != nil {
 		return err
 	}
-	inst.ctxSession.Adapter = adapter
+	inst.ac.Adapter = adapter
 	return nil
 }
 
-func (inst *securityChecker) auth() error {
-
-	// p1 := access.Path()
-	// p2 := access.PathPattern()
-	// vlog.Debug(p1)
-	// vlog.Debug(p2)
-
+func (inst *securityChecker) initSubject() error {
 	ctx := inst.gc
-	access := inst.ctxSession.Access
-	auth := &myAuthorization{a: access}
-
-	d1 := access.GetSessionData()
-	if d1 == nil {
-		d1 = []byte{123}
-	} else if len(d1) == 0 {
-		d1 = []byte{4, 56}
+	sm := inst.parent.securityContext.GetSubjects()
+	subject, err := sm.GetSubject(ctx)
+	if err != nil {
+		return err
 	}
-	access.SetSessionData(d1)
+	inst.ac.Subject = subject
+	return nil
+}
 
-	ok := inst.ctxSecurity.GetAuthorizations().Accept(ctx, auth)
-	if !ok {
-		return errors.New("Forbidden")
-	}
+func (inst *securityChecker) initSession() error {
+
 	return nil
 }

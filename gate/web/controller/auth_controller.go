@@ -74,10 +74,10 @@ func (inst *myAuthRequest) _Impl() keeper.Authentication {
 func (inst *myAuthRequest) Mechanism() string {
 	return inst.rxBody.Auth.Mechanism
 }
-func (inst *myAuthRequest) UserID() string {
+func (inst *myAuthRequest) User() string {
 	return inst.rxBody.Auth.Account
 }
-func (inst *myAuthRequest) UserSecret() []byte {
+func (inst *myAuthRequest) Secret() []byte {
 	secret := inst.rxBody.Auth.Secret
 	return secret.Bytes()
 }
@@ -141,14 +141,11 @@ func (inst *myAuthRequest) initSession(subject keeper.Subject, identity keeper.I
 
 	now := util.Now()
 	dst := session.Properties().Setter()
-	src := identity
 
-	dst.SetString(keeper.SessionFieldDisplayName, src.Nickname())
-	dst.SetString(keeper.SessionFieldUserID, src.UserID())
-	dst.SetString(keeper.SessionFieldAvatar, src.Avatar())
+	session.SetIdentity(identity)
+	dst.SetBool(keeper.SessionFieldAuthenticated, true)
 	dst.SetInt64(keeper.SessionFieldCreatedAt, now.Int64())
 	dst.SetInt64(keeper.SessionFieldUpdatedAt, now.Int64())
-	dst.SetBool(keeper.SessionFieldAuthenticated, true)
 
 	tr.Commit()
 	return nil

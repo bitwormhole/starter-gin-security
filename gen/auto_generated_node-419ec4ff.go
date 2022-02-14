@@ -9,7 +9,6 @@ import (
 	controller0x723949 "github.com/bitwormhole/starter-gin-security/gate/web/controller"
 	glass0x47343f "github.com/bitwormhole/starter-gin/glass"
 	keeper0x6d39ef "github.com/bitwormhole/starter-security/keeper"
-	application0x67f6c5 "github.com/bitwormhole/starter/application"
 	markup0x23084a "github.com/bitwormhole/starter/markup"
 )
 
@@ -26,15 +25,7 @@ type pComSecurityInterceptorRegistry struct {
 	instance *gate0x423a60.SecurityInterceptorRegistry
 	 markup0x23084a.Component `class:"rest-interceptor-registry"`
 	Subjects keeper0x6d39ef.SubjectManager `inject:"#keeper-subject-manager"`
-	Permissions gate0x423a60.PermissionManager `inject:"#security-gate-permission-manager"`
-}
-
-
-type pComPermissionManagerImpl struct {
-	instance *gate0x423a60.PermissionManagerImpl
-	 markup0x23084a.Component `id:"security-gate-permission-manager" initMethod:"Init" `
-	Context application0x67f6c5.Context `inject:"context"`
-	ResName string `inject:"${security.permissions.properties.name}"`
+	Permissions keeper0x6d39ef.PermissionManager `inject:"#keeper-permission-manager"`
 }
 
 

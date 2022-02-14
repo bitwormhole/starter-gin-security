@@ -48,36 +48,27 @@ func autoGenConfig(cb application.ConfigBuilder) error {
 		return err
 	}
 
-	// component: security-gate-permission-manager
+	// component: com2-ram0xca67a3.TheRAMSessionProvider
 	cominfobuilder.Next()
-	cominfobuilder.ID("security-gate-permission-manager").Class("").Aliases("").Scope("")
-	cominfobuilder.Factory((&comFactory4pComPermissionManagerImpl{}).init())
-	err = cominfobuilder.CreateTo(cb)
-	if err != nil {
-		return err
-	}
-
-	// component: com3-ram0xca67a3.TheRAMSessionProvider
-	cominfobuilder.Next()
-	cominfobuilder.ID("com3-ram0xca67a3.TheRAMSessionProvider").Class("keeper-session-provider-registry").Aliases("").Scope("")
+	cominfobuilder.ID("com2-ram0xca67a3.TheRAMSessionProvider").Class("keeper-session-provider-registry").Aliases("").Scope("")
 	cominfobuilder.Factory((&comFactory4pComTheRAMSessionProvider{}).init())
 	err = cominfobuilder.CreateTo(cb)
 	if err != nil {
 		return err
 	}
 
-	// component: com4-controller0x723949.AuthController
+	// component: com3-controller0x723949.AuthController
 	cominfobuilder.Next()
-	cominfobuilder.ID("com4-controller0x723949.AuthController").Class("rest-controller").Aliases("").Scope("")
+	cominfobuilder.ID("com3-controller0x723949.AuthController").Class("rest-controller").Aliases("").Scope("")
 	cominfobuilder.Factory((&comFactory4pComAuthController{}).init())
 	err = cominfobuilder.CreateTo(cb)
 	if err != nil {
 		return err
 	}
 
-	// component: com5-controller0x723949.SessionController
+	// component: com4-controller0x723949.SessionController
 	cominfobuilder.Next()
-	cominfobuilder.ID("com5-controller0x723949.SessionController").Class("rest-controller").Aliases("").Scope("")
+	cominfobuilder.ID("com4-controller0x723949.SessionController").Class("rest-controller").Aliases("").Scope("")
 	cominfobuilder.Factory((&comFactory4pComSessionController{}).init())
 	err = cominfobuilder.CreateTo(cb)
 	if err != nil {
@@ -186,7 +177,7 @@ func (inst * comFactory4pComSecurityInterceptorRegistry) init() application.Comp
 
 	
 	inst.mSubjectsSelector = config.NewInjectionSelector("#keeper-subject-manager",nil)
-	inst.mPermissionsSelector = config.NewInjectionSelector("#security-gate-permission-manager",nil)
+	inst.mPermissionsSelector = config.NewInjectionSelector("#keeper-permission-manager",nil)
 
 
 	inst.mPrototype = inst.newObject()
@@ -248,17 +239,17 @@ func (inst * comFactory4pComSecurityInterceptorRegistry) getterForFieldSubjectsS
 }
 
 //getterForFieldPermissionsSelector
-func (inst * comFactory4pComSecurityInterceptorRegistry) getterForFieldPermissionsSelector (context application.InstanceContext) gate0x423a60.PermissionManager {
+func (inst * comFactory4pComSecurityInterceptorRegistry) getterForFieldPermissionsSelector (context application.InstanceContext) keeper0x6d39ef.PermissionManager {
 
 	o1 := inst.mPermissionsSelector.GetOne(context)
-	o2, ok := o1.(gate0x423a60.PermissionManager)
+	o2, ok := o1.(keeper0x6d39ef.PermissionManager)
 	if !ok {
 		eb := &util.ErrorBuilder{}
 		eb.Message("bad cast")
 		eb.Set("com", "com1-gate0x423a60.SecurityInterceptorRegistry")
 		eb.Set("field", "Permissions")
 		eb.Set("type1", "?")
-		eb.Set("type2", "gate0x423a60.PermissionManager")
+		eb.Set("type2", "keeper0x6d39ef.PermissionManager")
 		context.HandleError(eb.Create())
 		return nil
 	}
@@ -269,79 +260,7 @@ func (inst * comFactory4pComSecurityInterceptorRegistry) getterForFieldPermissio
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// comFactory4pComPermissionManagerImpl : the factory of component: security-gate-permission-manager
-type comFactory4pComPermissionManagerImpl struct {
-
-    mPrototype * gate0x423a60.PermissionManagerImpl
-
-	
-	mContextSelector config.InjectionSelector
-	mResNameSelector config.InjectionSelector
-
-}
-
-func (inst * comFactory4pComPermissionManagerImpl) init() application.ComponentFactory {
-
-	
-	inst.mContextSelector = config.NewInjectionSelector("context",nil)
-	inst.mResNameSelector = config.NewInjectionSelector("${security.permissions.properties.name}",nil)
-
-
-	inst.mPrototype = inst.newObject()
-    return inst
-}
-
-func (inst * comFactory4pComPermissionManagerImpl) newObject() * gate0x423a60.PermissionManagerImpl {
-	return & gate0x423a60.PermissionManagerImpl {}
-}
-
-func (inst * comFactory4pComPermissionManagerImpl) castObject(instance application.ComponentInstance) * gate0x423a60.PermissionManagerImpl {
-	return instance.Get().(*gate0x423a60.PermissionManagerImpl)
-}
-
-func (inst * comFactory4pComPermissionManagerImpl) GetPrototype() lang.Object {
-	return inst.mPrototype
-}
-
-func (inst * comFactory4pComPermissionManagerImpl) NewInstance() application.ComponentInstance {
-	return config.SimpleInstance(inst, inst.newObject())
-}
-
-func (inst * comFactory4pComPermissionManagerImpl) AfterService() application.ComponentAfterService {
-	return inst
-}
-
-func (inst * comFactory4pComPermissionManagerImpl) Init(instance application.ComponentInstance) error {
-	return inst.castObject(instance).Init()
-}
-
-func (inst * comFactory4pComPermissionManagerImpl) Destroy(instance application.ComponentInstance) error {
-	return nil
-}
-
-func (inst * comFactory4pComPermissionManagerImpl) Inject(instance application.ComponentInstance, context application.InstanceContext) error {
-	
-	obj := inst.castObject(instance)
-	obj.Context = inst.getterForFieldContextSelector(context)
-	obj.ResName = inst.getterForFieldResNameSelector(context)
-	return context.LastError()
-}
-
-//getterForFieldContextSelector
-func (inst * comFactory4pComPermissionManagerImpl) getterForFieldContextSelector (context application.InstanceContext) application.Context {
-    return context.Context()
-}
-
-//getterForFieldResNameSelector
-func (inst * comFactory4pComPermissionManagerImpl) getterForFieldResNameSelector (context application.InstanceContext) string {
-    return inst.mResNameSelector.GetString(context)
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-// comFactory4pComTheRAMSessionProvider : the factory of component: com3-ram0xca67a3.TheRAMSessionProvider
+// comFactory4pComTheRAMSessionProvider : the factory of component: com2-ram0xca67a3.TheRAMSessionProvider
 type comFactory4pComTheRAMSessionProvider struct {
 
     mPrototype * ram0xca67a3.TheRAMSessionProvider
@@ -413,7 +332,7 @@ func (inst * comFactory4pComTheRAMSessionProvider) getterForFieldHTTPHeaderToken
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// comFactory4pComAuthController : the factory of component: com4-controller0x723949.AuthController
+// comFactory4pComAuthController : the factory of component: com3-controller0x723949.AuthController
 type comFactory4pComAuthController struct {
 
     mPrototype * controller0x723949.AuthController
@@ -479,7 +398,7 @@ func (inst * comFactory4pComAuthController) getterForFieldSubjectsSelector (cont
 	if !ok {
 		eb := &util.ErrorBuilder{}
 		eb.Message("bad cast")
-		eb.Set("com", "com4-controller0x723949.AuthController")
+		eb.Set("com", "com3-controller0x723949.AuthController")
 		eb.Set("field", "Subjects")
 		eb.Set("type1", "?")
 		eb.Set("type2", "keeper0x6d39ef.SubjectManager")
@@ -497,7 +416,7 @@ func (inst * comFactory4pComAuthController) getterForFieldMyResponderSelector (c
 	if !ok {
 		eb := &util.ErrorBuilder{}
 		eb.Message("bad cast")
-		eb.Set("com", "com4-controller0x723949.AuthController")
+		eb.Set("com", "com3-controller0x723949.AuthController")
 		eb.Set("field", "MyResponder")
 		eb.Set("type1", "?")
 		eb.Set("type2", "glass0x47343f.MainResponder")
@@ -511,7 +430,7 @@ func (inst * comFactory4pComAuthController) getterForFieldMyResponderSelector (c
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// comFactory4pComSessionController : the factory of component: com5-controller0x723949.SessionController
+// comFactory4pComSessionController : the factory of component: com4-controller0x723949.SessionController
 type comFactory4pComSessionController struct {
 
     mPrototype * controller0x723949.SessionController
@@ -577,7 +496,7 @@ func (inst * comFactory4pComSessionController) getterForFieldMyResponderSelector
 	if !ok {
 		eb := &util.ErrorBuilder{}
 		eb.Message("bad cast")
-		eb.Set("com", "com5-controller0x723949.SessionController")
+		eb.Set("com", "com4-controller0x723949.SessionController")
 		eb.Set("field", "MyResponder")
 		eb.Set("type1", "?")
 		eb.Set("type2", "glass0x47343f.MainResponder")
@@ -595,7 +514,7 @@ func (inst * comFactory4pComSessionController) getterForFieldSubjectsSelector (c
 	if !ok {
 		eb := &util.ErrorBuilder{}
 		eb.Message("bad cast")
-		eb.Set("com", "com5-controller0x723949.SessionController")
+		eb.Set("com", "com4-controller0x723949.SessionController")
 		eb.Set("field", "Subjects")
 		eb.Set("type1", "?")
 		eb.Set("type2", "keeper0x6d39ef.SubjectManager")
