@@ -86,7 +86,7 @@ func (inst *mySessionRequest) doGet() error {
 		return err
 	}
 
-	session, err := subject.GetSession(false)
+	session, err := subject.GetSession(true)
 	if err != nil {
 		return nil
 	}
