@@ -14,8 +14,8 @@ import (
 
 const (
 	theModuleName = "github.com/bitwormhole/starter-gin-security"
-	theModuleVer  = "v0.1.6"
-	theModuleRev  = 10
+	theModuleVer  = "v0.1.7"
+	theModuleRev  = 11
 )
 
 //go:embed src/main/resources
