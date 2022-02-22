@@ -146,7 +146,12 @@ func (inst *mySessionAdapter) Load(s keeper.Session) error {
 
 func (inst *mySessionAdapter) initNewSession(s keeper.Session) (*mySessionHolder, error) {
 	id := inst.provider.sessionStore.generateSessionID()
-	return inst.provider.sessionStore.findWithCreate(id)
+	h, err := inst.provider.sessionStore.findWithCreate(id)
+	if err != nil {
+		return nil, err
+	}
+	h.createdAt = util.Now()
+	return h, nil
 }
 
 func (inst *mySessionAdapter) Store(s keeper.Session) error {
@@ -159,6 +164,7 @@ func (inst *mySessionAdapter) Store(s keeper.Session) error {
 			return err
 		}
 		holder = h2
+		inst.holder = h2
 	}
 
 	data1 := holder.data
