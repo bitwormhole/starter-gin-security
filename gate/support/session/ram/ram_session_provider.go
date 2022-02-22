@@ -207,7 +207,7 @@ func (inst *mySessionAdapter) parseProperties(s string) (collection.Properties, 
 	list := strings.Split(s, "\n")
 	props := collection.CreateProperties()
 	for _, item := range list {
-		i := strings.IndexRune(item, '\n')
+		i := strings.IndexRune(item, '=')
 		if i < 1 {
 			continue
 		}
