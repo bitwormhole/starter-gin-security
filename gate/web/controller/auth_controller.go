@@ -121,6 +121,9 @@ func (inst *myAuthRequest) doPost() error {
 		return err
 	}
 
+	tx := &inst.txBody.Auth
+	tx.WantMore = false
+	tx.Success = true
 	return nil
 }
 
