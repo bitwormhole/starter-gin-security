@@ -144,11 +144,21 @@ func (inst *mySessionAdapter) Load(s keeper.Session) error {
 	return nil
 }
 
+func (inst *mySessionAdapter) initNewSession(s keeper.Session) (*mySessionHolder, error) {
+	id := inst.provider.sessionStore.generateSessionID()
+	return inst.provider.sessionStore.findWithCreate(id)
+}
+
 func (inst *mySessionAdapter) Store(s keeper.Session) error {
 
 	holder := inst.holder
 	if holder == nil {
-		return errors.New("no session")
+		// return errors.New("no session")
+		h2, err := inst.initNewSession(s)
+		if err != nil {
+			return err
+		}
+		holder = h2
 	}
 
 	data1 := holder.data
