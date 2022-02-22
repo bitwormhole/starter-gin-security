@@ -192,6 +192,9 @@ func (inst *mySessionAdapter) parseProperties(s string) (collection.Properties, 
 	props := collection.CreateProperties()
 	for _, item := range list {
 		i := strings.IndexRune(item, '\n')
+		if i < 1 {
+			continue
+		}
 		k := strings.TrimSpace(item[0:i])
 		v := strings.TrimSpace(item[i+1:])
 		props.SetProperty(k, v)
